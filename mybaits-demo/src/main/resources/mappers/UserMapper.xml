@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wyj.DAO.UserMapper">
+    <select id="queryUserByTableName" resultType="com.wyj.entity.User">
+        select * from ${tableName}
+    </select>
+
+    <select id="login" resultType="com.wyj.entity.User">
+        select * from tbuser where userName = ${userName} and password = ${password}
+    </select>
+
+    <select id="queryUserById" resultType="com.wyj.entity.User">
+        select * from tbuser where id = ${id}
+    </select>
+
+    <select id="queryUserAll" resultType="com.wyj.entity.User">
+        select * from tbuser
+    </select>
+
+    <insert id="InsertUser" parameterType="com.wyj.entity.User">
+        insert into tbuser(id, userName, password, name, age, sex, Birthday, created, updated)
+        values (
+        #{id},
+        #{userName},
+        #{password},
+        #{name},
+        #{age},
+        #{sex},
+        #{birthday},
+        NOW(),
+        NOW()
+        );
+    </insert>
+
+    <update id="UpdateUser" parameterType="com.wyj.entity.User">
+        update tbuser
+        <trim prefix="set" suffixOverrides=",">
+            <if test="userName!=null">userName = #{userName},</if>
+            <if test="password!=null">password = #{password},</if>
+            <if test="name!=null">name = #{name},</if>
+            <if test="age!=null">age = #{age},</if>
+            <if test="sex!=null">sex = #{sex},</if>
+            <if test="birthday!=null">birthday = #{birthday},</if>
+            updated = now(),
+            where id = #{id};
+        </trim>
+    </update>
+
+    <delete id="DeleteUserById" parameterType="java.lang.String">
+        delete from tb_user where id=#{id}
+    </delete>
+</mapper>
