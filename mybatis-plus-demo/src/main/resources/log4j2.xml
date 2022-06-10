@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration monitorInterval="30" status="WARN" strict="true">
+	<properties>
+		<!-- 文件输出格式 -->
+		<property name="LOG_HOME" value="logs" />
+		<property name="LOG_LEVEL" value="info" />
+		<property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} |-%highlight{%-5level} [%thread] [%X{requestId}] %c [%L] -| %msg%n" />
+		<property name="FILE_DEADLINE" value="15d" />
+		<property name="FILE_MAX_SIZE" value="5GB" />
+	</properties>
+	<appenders>
+		<Console name="CONSOLE" target="system_out">
+			<PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}" />
+		</Console>
+		<RollingFile name="TraceLog" fileName="${LOG_HOME}/logs/app.trace"
+					 filePattern="${LOG_HOME}/logs/bak/%d{yyyy-MM-dd}-app-%i.trace.gz">
+			<PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="100 MB" />
+			</Policies>
+		</RollingFile>
+
+		<RollingFile name="SysLog" fileName="${LOG_HOME}/logs/app.sys"
+					 filePattern="${LOG_HOME}/logs/bak/%d{yyyy-MM-dd}-app-%i.sys.gz">
+			<PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="100 MB" />
+			</Policies>
+		</RollingFile>
+
+		<RollingFile name="WarnLog" fileName="${LOG_HOME}/logs/app.warn"
+					 filePattern="${LOG_HOME}/logs/bak/%d{yyyy-MM-dd}-app-%i.warn.gz">
+			<Filters>
+				<ThresholdFilter onMismatch="NEUTRAL" onMatch="DENY" level="ERROR"/>
+				<ThresholdFilter onMismatch="DENY" onMatch="ACCEPT" level="WARN"/>
+			</Filters>
+			<PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="100 MB"/>
+			</Policies>
+		</RollingFile>
+
+		<RollingFile name="ErrorLog" fileName="${LOG_HOME}/logs/app.err"
+					 filePattern="${LOG_HOME}/logs/bak/%d{yyyy-MM-dd}-app-%i.err.gz">
+			<Filters>
+				<ThresholdFilter onMismatch="DENY" onMatch="ACCEPT" level="ERROR"/>
+			</Filters>
+			<PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="100 MB"/>
+			</Policies>
+		</RollingFile>
+
+		<RollingFile name="BizLog" fileName="${LOG_HOME}/logs/app.log"
+					 filePattern="${LOG_HOME}/logs/bak/%d{yyyy-MM-dd}-app-%i.log.gz">
+			<PatternLayout charset="UTF-8" pattern="${LOG_PATTERN}" />
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+				<SizeBasedTriggeringPolicy size="100 MB" />
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${LOG_HOME}/logs/bak" maxDepth="1">
+					<IfFileName glob="*.gz" />
+					<IfAny>
+						<IfLastModified age="${FILE_DEADLINE}" />
+						<IfAccumulatedFileSize exceeds="${FILE_MAX_SIZE}" />
+					</IfAny>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
+
+		<Async name="AsyncCONSOLE">
+			<AppenderRef ref="CONSOLE"/>
+		</Async>
+		<Async name="AsyncTraceLog">
+			<AppenderRef ref="TraceLog"/>
+		</Async>
+		<Async name="AsyncWarnLog">
+			<AppenderRef ref="WarnLog"/>
+		</Async>
+		<Async name="AsyncErrorLog">
+			<AppenderRef ref="ErrorLog"/>
+		</Async>
+		<Async name="AsyncBizLog">
+			<AppenderRef ref="BizLog"/>
+		</Async>
+		<Async name="AsyncSysLog">
+			<AppenderRef ref="SysLog"/>
+		</Async>
+
+		<Biz name="BizAsyncWarnLog">
+			<AppenderRef ref="AsyncWarnLog"/>
+		</Biz>
+		<Biz name="BizAsyncErrorLog">
+			<AppenderRef ref="AsyncErrorLog"/>
+		</Biz>
+		<Biz name="BizAsyncBizLog">
+			<AppenderRef ref="AsyncBizLog"/>
+		</Biz>
+		<Biz name="BizAsyncSysLog">
+			<AppenderRef ref="AsyncSysLog"/>
+		</Biz>
+	</appenders>
+
+	<loggers>
+		<Logger name="com.hundsun.jrescloud.common.log.trace" level="info" additivity="false">
+			<AppenderRef ref="AsyncTraceLog" />
+		</Logger>
+		<!--系统组件包名-->
+		<Logger name="com.hundsun.jrescloud.common.log.syserr" level="info" additivity="true">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="com.hundsun.jrescloud.rpc" level="info" additivity="true">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="com.hundsun.jrescloud.mq" level="info" additivity="true">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="org.springframework" level="info" additivity="true">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="org.apache" level="info" additivity="false">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="org.quartz" level="info" additivity="false">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="com.alibaba.dubbo" level="info" additivity="false">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="org.ehcache" level="info" additivity="false">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="org.mybatis" level="info" additivity="true">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="tk.mybatis" level="info" additivity="true">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+		<Logger name="org.hibernate" level="info" additivity="false">
+			<AppenderRef ref="BizAsyncSysLog"/>
+		</Logger>
+
+		<Logger name="com.hundsun.jrescloud.common.log.bizerr" level="info" additivity="true">
+			<AppenderRef ref="AsyncErrorLog" />
+		</Logger>
+
+		<Logger name="com.hundsun.opdc.common.dao" level="info" additivity="true">
+			<AppenderRef ref="BizAsyncBizLog" />
+		</Logger>
+
+		<root level="${LOG_LEVEL}">
+			<AppenderRef ref="AsyncCONSOLE" />
+			<AppenderRef ref="BizAsyncBizLog" />
+			<AppenderRef ref="BizAsyncWarnLog"/>
+			<AppenderRef ref="BizAsyncErrorLog"/>
+		</root>
+	</loggers>
+
+</configuration>
